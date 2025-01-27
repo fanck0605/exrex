@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 # This file is part of exrex.
 #
@@ -18,13 +17,16 @@
 #
 # (C) 2012- by Adam Tauber, <asciimoo@gmail.com>
 
-from exrex import generate, count, getone, CATEGORIES, simplify
 import re
-try: 
+import unittest
+
+from exrex import generate, count, getone, CATEGORIES, simplify
+
+try:
     import re._parser as sre_parse
 except ImportError: # Python < 3.11
     from re import sre_parse
-from sys import exit, version_info
+from sys import version_info
 
 IS_PY3 = version_info[0] == 3
 
@@ -71,94 +73,48 @@ BIGS = [
 ]
 
 
-def gen_test():
-    for regex, result in RS.items():
-        try:
-            assert list(generate(regex)) == result
-        except:
-            print('[E] Assertion error! "%s"\n\t%r != %r' %
-                  (regex, list(generate(regex)), result))
-            return -1
-    return 0
+class TestExrex(unittest.TestCase):
+    def test_gen(self):
+        for regex, result in RS.items():
+            with self.subTest(regex):
+                self.assertEqual(list(generate(regex)), result)
 
+    def test_count(self):
+        for regex, result in RS.items():
+            with self.subTest(regex):
+                c = count(regex)
+                l = len(result)
+                self.assertEqual(c, l)
 
-def count_test():
-    for regex, result in RS.items():
-        c = count(regex)
-        l = len(result)
-        try:
-            assert c == l
-        except:
-            if IS_PY3:
-                print('[E] Assertion error! "%s"\n\t%d != %d' % (regex, c, l))
-                return -1
-            else:
-                print('[E] Assertion error! "%s"\n\t%d != %d' %
-                      (regex.decode('utf-8'), c, l))
-                return -1
-    return 0
+    def test_getone(self):
+        tries = 200
+        for regex, _ in RS.items():
+            with self.subTest(regex):
+                for _ in range(tries):
+                    s = getone(regex)
+                    if IS_PY3:
+                        self.assertTrue(re.match(regex, s, re.U))
+                    else:
+                        self.assertTrue(re.match(regex, s.encode('utf-8'), re.U))
 
+        for regex in BIGS:
+            with self.subTest(regex):
+                for _ in range(tries):
+                    s = getone(regex)
+                    if IS_PY3:
+                        self.assertTrue(re.match(regex, s, re.U))
+                    else:
+                        self.assertTrue(re.match(regex, s.encode('utf-8'), re.U))
 
-def getone_test(tries=200):
-    for regex, _ in RS.items():
-        for _ in range(tries):
-            try:
-                s = getone(regex)
-                if IS_PY3:
-                    assert re.match(regex, s, re.U)
-                else:
-                    assert re.match(regex, s.encode('utf-8'), re.U)
-            except Exception:
-                if IS_PY3:
-                    print('[E] Assertion error! "%s"\n\t%s not match' %
-                          (regex, s))
-                    return -1
-                else:
-                    print('[E] Assertion error! "%s"\n\t%s not match' %
-                          (regex.decode('utf-8'), s))
-                    return -1
-    for regex in BIGS:
-        for _ in range(tries):
-            try:
-                s = getone(regex)
-                if IS_PY3:
-                    assert re.match(regex, s, re.U)
-                else:
-                    assert re.match(regex, s.encode('utf-8'), re.U)
-            except:
-                if IS_PY3:
-                    print('[E] Assertion error! "%s"\n\t%s not match' %
-                          (regex, s))
-                    return -1
-                else:
-                    print('[E] Assertion error! "%s"\n\t%s not match' %
-                          (regex.decode('utf-8'), s))
-                    return -1
-    return 0
-
-
-def simplify_test():
-    for regex, result in RS.items():
-        new_regex = simplify(regex)
-        if not IS_PY3:
-            new_regex = new_regex.encode('utf-8')
-        r = list(generate(new_regex))
-        try:
-            assert r == result
-        except:
-            print('[E] Assertion error! "%s"\n\t%r != %r' % (regex, r, result))
-            return -1
+    def test_simplify(self):
+        for regex, result in RS.items():
+            with self.subTest(regex):
+                new_regex = simplify(regex)
+                if not IS_PY3:
+                    new_regex = new_regex.encode('utf-8')
+                r = list(generate(new_regex))
+                self.assertEqual(r, result)
 
 
 if __name__ == '__main__':
-    tests = {'generation': gen_test,
-             'count': count_test,
-             'random generation': getone_test,
-             'simplification': simplify_test}
-    for i, (test_name, test) in enumerate(tests.items()):
-        errors = test()
-        if not errors:
-            print('[+] {0} test passed'.format(test_name))
-        else:
-            print('[-] {0} test failed'.format(test_name))
-            exit(i + 1)
+    unittest.main()
