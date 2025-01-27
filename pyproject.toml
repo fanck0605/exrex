@@ -36,5 +36,26 @@ exrex = "exrex:__main__"
 
 [dependency-groups]
 dev = [
+    "ruff>=0.9.3",
     "tox-uv>=1.13.1",
+]
+
+[tool.ruff]
+exclude = [
+    ".venv",
+    "doc",
+]
+# Allow lines to be as long as 120.
+line-length = 120
+
+[tool.ruff.lint]
+# On top of the default `select` (`E4`, E7`, `E9`, and `F`).
+extend-select = [
+    "B",
+    "Q",
+    "E",
+]
+ignore = [
+    "Q000",
+    "Q001",
 ]

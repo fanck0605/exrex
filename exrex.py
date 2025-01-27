@@ -91,7 +91,7 @@ def _in(d):
                 for char in subs:
                     try:
                         ret.remove(char)
-                    except:
+                    except ValueError:
                         pass
             else:
                 ret.extend(subs)
@@ -99,7 +99,7 @@ def _in(d):
             if neg:
                 try:
                     ret.remove(chr(i[1]))
-                except:
+                except ValueError:
                     pass
             else:
                 ret.append(chr(i[1]))
@@ -109,7 +109,7 @@ def _in(d):
                 for char in subs:
                     try:
                         ret.remove(char)
-                    except:
+                    except ValueError:
                         pass
             else:
                 ret.extend(subs)

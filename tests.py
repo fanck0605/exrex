@@ -79,9 +79,7 @@ class TestExrex(unittest.TestCase):
     def test_count(self):
         for regex, result in RS.items():
             with self.subTest(regex):
-                c = count(regex)
-                l = len(result)
-                self.assertEqual(c, l)
+                self.assertEqual(count(regex), len(result))
 
     def test_getone(self):
         tries = 200
