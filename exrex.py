@@ -27,7 +27,6 @@ try:
     import re._parser as sre_parse
 except ImportError: # Python < 3.11
     from re import sre_parse
-from itertools import tee
 from random import choice, randint
 from types import GeneratorType
 
@@ -51,11 +50,11 @@ __all__ = (
 CATEGORIES = {
     sre_parse.CATEGORY_SPACE: sorted(sre_parse.WHITESPACE),
     sre_parse.CATEGORY_DIGIT: sorted(sre_parse.DIGITS),
-    sre_parse.CATEGORY_WORD: [unichr(x) for x in range(256) if
+    sre_parse.CATEGORY_WORD: [unichr(x) for x in range(32, 127) if
                               match(r'\w', unichr(x), U)],
-    sre_parse.CATEGORY_NOT_WORD: [unichr(x) for x in range(256) if
+    sre_parse.CATEGORY_NOT_WORD: [unichr(x) for x in range(32, 127) if
                                   match(r'\W', unichr(x), U)],
-    'category_any': [unichr(x) for x in range(32, 123)]
+    'category_any': [unichr(x) for x in range(32, 127)]
 }
 
 
@@ -77,8 +76,7 @@ REVERSE_CATEGORIES = _build_reverse_categories()
 
 def comb(g, i):
     for c in g:
-        g2, i = tee(i)
-        for c2 in g2:
+        for c2 in i:
             yield c + c2
 
 
@@ -194,12 +192,12 @@ def _gen(d, limit=20, count=False, grouprefs=None):
             ret = comb(ret, subs)
         elif i[0] == sre_parse.MAX_REPEAT or i[0] == sre_parse.MIN_REPEAT:
             items = list(i[1][2])
-            if i[1][1] + 1 - i[1][0] >= limit:
-                r1 = i[1][0]
-                r2 = i[1][0] + limit
+            r1 = i[1][0]
+            r2 = i[1][1]
+            if r2 is sre_parse.MAXREPEAT:
+                r2 = r1 + limit
             else:
-                r1 = i[1][0]
-                r2 = i[1][1] + 1
+                r2 = r2 + 1
             ran = range(r1, r2)
             if count:
                 branch_count = 0
