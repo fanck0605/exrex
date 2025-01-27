@@ -37,6 +37,8 @@ IS_PY36_OR_GREATER = IS_PY3 and version_info[1] > 5
 if IS_PY3:
     unichr = chr
 
+__version__ = '0.12.0'
+
 __all__ = (
     'generate',
     'CATEGORIES',

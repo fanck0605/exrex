@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=61.0.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.dynamic]
+version = { attr = "exrex.__version__" }
+
+[project]
+name = "exrex"
+dependencies = []
+requires-python = ">=3.8"
+authors = [
+    { name = "Adam Tauber", email = "asciimoo@gmail.com" },
+]
+description = "Irregular methods for regular expressions"
+readme = "README.md"
+license = { text = "AGPLv3" }
+keywords = ["regexp", "generators", "string", "generation", "regex", "simplification"]
+classifiers = [
+    # As from http://pypi.python.org/pypi?%3Aaction=list_classifiers
+    "Development Status :: 4 - Beta",
+    "Topic :: Utilities",
+    "Environment :: Console",
+    "License :: OSI Approved :: GNU Affero General Public License v3",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+]
+dynamic = ["version"]
+
+[project.urls]
+Repository = "https://github.com/asciimoo/exrex"
+"Download Link" = "https://github.com/asciimoo/exrex/tarball/master"
+
+[project.scripts]
+exrex = "exrex:__main__"
+
+[dependency-groups]
+dev = [
+    "tox-uv>=1.13.1",
+]
