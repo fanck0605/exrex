@@ -18,10 +18,6 @@
 #
 # (C) 2012- by Adam Tauber, <asciimoo@gmail.com>
 
-try:
-    from future_builtins import map, range
-except:
-    pass
 from re import match, U
 try:
     import re._parser as sre_parse
@@ -29,13 +25,6 @@ except ImportError: # Python < 3.11
     from re import sre_parse
 from random import choice, randint
 from types import GeneratorType
-
-from sys import version_info
-IS_PY3 = version_info[0] == 3
-IS_PY36_OR_GREATER = IS_PY3 and version_info[1] > 5
-
-if IS_PY3:
-    unichr = chr
 
 __version__ = '0.12.0'
 
@@ -52,11 +41,11 @@ __all__ = (
 CATEGORIES = {
     sre_parse.CATEGORY_SPACE: sorted(sre_parse.WHITESPACE),
     sre_parse.CATEGORY_DIGIT: sorted(sre_parse.DIGITS),
-    sre_parse.CATEGORY_WORD: [unichr(x) for x in range(32, 127) if
-                              match(r'\w', unichr(x), U)],
-    sre_parse.CATEGORY_NOT_WORD: [unichr(x) for x in range(32, 127) if
-                                  match(r'\W', unichr(x), U)],
-    'category_any': [unichr(x) for x in range(32, 127)]
+    sre_parse.CATEGORY_WORD: [chr(x) for x in range(32, 127) if
+                              match(r'\w', chr(x), U)],
+    sre_parse.CATEGORY_NOT_WORD: [chr(x) for x in range(32, 127) if
+                                  match(r'\W', chr(x), U)],
+    'category_any': [chr(x) for x in range(32, 127)]
 }
 
 
@@ -97,7 +86,7 @@ def _in(d):
     neg = False
     for i in d:
         if i[0] == sre_parse.RANGE:
-            subs = map(unichr, range(i[1][0], i[1][1] + 1))
+            subs = map(chr, range(i[1][0], i[1][1] + 1))
             if neg:
                 for char in subs:
                     try:
@@ -109,11 +98,11 @@ def _in(d):
         elif i[0] == sre_parse.LITERAL:
             if neg:
                 try:
-                    ret.remove(unichr(i[1]))
+                    ret.remove(chr(i[1]))
                 except:
                     pass
             else:
-                ret.append(unichr(i[1]))
+                ret.append(chr(i[1]))
         elif i[0] == sre_parse.CATEGORY:
             subs = CATEGORIES.get(i[1], [''])
             if neg:
@@ -181,7 +170,7 @@ def _gen(d, limit=20, count=False, grouprefs=None):
             ret = comb(ret, subs)
         elif i[0] == sre_parse.LITERAL:
             literal = True
-            ret = mappend(ret, unichr(i[1]))
+            ret = mappend(ret, chr(i[1]))
         elif i[0] == sre_parse.CATEGORY:
             subs = CATEGORIES.get(i[1], [''])
             if count:
@@ -215,7 +204,7 @@ def _gen(d, limit=20, count=False, grouprefs=None):
             ret = concit(ret, i[1][1], limit, grouprefs)
         elif i[0] == sre_parse.SUBPATTERN or i[0] == sre_parse.ASSERT:
             subexpr = i[1][1]
-            if IS_PY36_OR_GREATER and i[0] == sre_parse.SUBPATTERN:
+            if i[0] == sre_parse.SUBPATTERN:
                 subexpr = i[1][3]
             if count:
                 strings = (
@@ -226,8 +215,8 @@ def _gen(d, limit=20, count=False, grouprefs=None):
             continue
         elif i[0] == sre_parse.NOT_LITERAL:
             subs = list(CATEGORIES['category_any'])
-            if unichr(i[1]) in subs:
-                subs.remove(unichr(i[1]))
+            if chr(i[1]) in subs:
+                subs.remove(chr(i[1]))
             if count:
                 strings = (strings or 1) * len(subs)
             ret = comb(ret, subs)
@@ -260,7 +249,7 @@ def _randone(d, limit=20, grouprefs=None):
         if i[0] == sre_parse.IN:
             ret += choice(_in(i[1]))
         elif i[0] == sre_parse.LITERAL:
-            ret += unichr(i[1])
+            ret += chr(i[1])
         elif i[0] == sre_parse.CATEGORY:
             ret += choice(CATEGORIES.get(i[1], ['']))
         elif i[0] == sre_parse.ANY:
@@ -276,7 +265,7 @@ def _randone(d, limit=20, grouprefs=None):
             ret += _randone(choice(i[1][1]), limit, grouprefs)
         elif i[0] == sre_parse.SUBPATTERN or i[0] == sre_parse.ASSERT:
             subexpr = i[1][1]
-            if IS_PY36_OR_GREATER and i[0] == sre_parse.SUBPATTERN:
+            if i[0] == sre_parse.SUBPATTERN:
                 subexpr = i[1][3]
             subp = _randone(subexpr, limit, grouprefs)
             if i[1][0]:
@@ -286,8 +275,8 @@ def _randone(d, limit=20, grouprefs=None):
             continue
         elif i[0] == sre_parse.NOT_LITERAL:
             c = list(CATEGORIES['category_any'])
-            if unichr(i[1]) in c:
-                c.remove(unichr(i[1]))
+            if chr(i[1]) in c:
+                c.remove(chr(i[1]))
             ret += choice(c)
         elif i[0] == sre_parse.GROUPREF:
             ret += grouprefs[i[1]]
@@ -314,7 +303,7 @@ def sre_to_string(sre_obj, paren=True):
                 prefix = '^'
             ret += u'[{0}{1}]'.format(prefix, sre_to_string(i[1], paren=paren))
         elif i[0] == sre_parse.LITERAL:
-            u = unichr(i[1])
+            u = chr(i[1])
             ret += u if u not in sre_parse.SPECIAL_CHARS else '\\{0}'.format(u)
         elif i[0] == sre_parse.CATEGORY:
             ret += REVERSE_CATEGORIES[i[1]]
@@ -338,14 +327,14 @@ def sre_to_string(sre_obj, paren=True):
                 ret += '{0}'.format(branch)
         elif i[0] == sre_parse.SUBPATTERN:
             subexpr = i[1][1]
-            if IS_PY36_OR_GREATER and i[0] == sre_parse.SUBPATTERN:
+            if i[0] == sre_parse.SUBPATTERN:
                 subexpr = i[1][3]
             if i[1][0]:
                 ret += '({0})'.format(sre_to_string(subexpr, paren=False))
             else:
                 ret += '{0}'.format(sre_to_string(subexpr, paren=paren))
         elif i[0] == sre_parse.NOT_LITERAL:
-            ret += '[^{0}]'.format(unichr(i[1]))
+            ret += '[^{0}]'.format(chr(i[1]))
         elif i[0] == sre_parse.MAX_REPEAT:
             if i[1][0] == i[1][1]:
                 range_str = '{{{0}}}'.format(i[1][0])
@@ -377,7 +366,7 @@ def sre_to_string(sre_obj, paren=True):
         elif i[0] == sre_parse.NEGATE:
             pass
         elif i[0] == sre_parse.RANGE:
-            ret += '{0}-{1}'.format(unichr(i[1][0]), unichr(i[1][1]))
+            ret += '{0}-{1}'.format(chr(i[1][0]), chr(i[1][1]))
         elif i[0] == sre_parse.ASSERT:
             if i[1][0]:
                 ret += '(?={0})'.format(sre_to_string(i[1][1], paren=False))
@@ -408,10 +397,7 @@ def parse(s):
     :type s: str
     :rtype: list
     """
-    if IS_PY3:
-        r = sre_parse.parse(s, flags=U)
-    else:
-        r = sre_parse.parse(s.decode('utf-8'), flags=U)
+    r = sre_parse.parse(s, flags=U)
     return list(r)
 
 

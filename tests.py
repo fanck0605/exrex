@@ -26,9 +26,6 @@ try:
     import re._parser as sre_parse
 except ImportError: # Python < 3.11
     from re import sre_parse
-from sys import version_info
-
-IS_PY3 = version_info[0] == 3
 
 RS = {
     '(a|b)': ['a', 'b'],
@@ -92,26 +89,18 @@ class TestExrex(unittest.TestCase):
             with self.subTest(regex):
                 for _ in range(tries):
                     s = getone(regex)
-                    if IS_PY3:
-                        self.assertTrue(re.match(regex, s, re.U))
-                    else:
-                        self.assertTrue(re.match(regex, s.encode('utf-8'), re.U))
+                    self.assertTrue(re.match(regex, s, re.U))
 
         for regex in BIGS:
             with self.subTest(regex):
                 for _ in range(tries):
                     s = getone(regex)
-                    if IS_PY3:
-                        self.assertTrue(re.match(regex, s, re.U))
-                    else:
-                        self.assertTrue(re.match(regex, s.encode('utf-8'), re.U))
+                    self.assertTrue(re.match(regex, s, re.U))
 
     def test_simplify(self):
         for regex, result in RS.items():
             with self.subTest(regex):
                 new_regex = simplify(regex)
-                if not IS_PY3:
-                    new_regex = new_regex.encode('utf-8')
                 r = list(generate(new_regex))
                 self.assertEqual(r, result)
 
