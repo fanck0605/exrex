@@ -24,49 +24,55 @@ from exrex import generate, count, getone, CATEGORIES, simplify
 
 try:
     import re._parser as sre_parse
-except ImportError: # Python < 3.11
+except ImportError:  # Python < 3.11
     from re import sre_parse
 
 RS = {
-    '(a|b)': ['a', 'b'],
-    '[ab][cd]': ['ac', 'ad', 'bc', 'bd'],
-    'a|ab': ['a', 'ab'],
-    '[0-2]': ['0', '1', '2'],
-    '(foo|bar)(20|)16': ['foo2016', 'foo16', 'bar2016', 'bar16'],
-    '[12]{1,2}': ['1', '2', '11', '12', '21', '22'],
-    '((hai){2}|world)!': ['haihai!', 'world!'],
-    '[ab]{1,3}': ['a', 'b', 'aa', 'ab', 'ba', 'bb', 'aaa', 'aab', 'aba', 'abb', 'baa', 'bab', 'bba', 'bbb'],
-    '\d': list(map(str, range(0, 10))),
-    'a[b]?(c){0,1}': ['a', 'ac', 'ab', 'abc'],
-    '(a(b(c(d(e(f))))))': ['abcdef'],
-    '(a(b(c(d(e(f){1,2}))))){1,2}': ['abcdef', 'abcdeff', 'abcdefabcdef',
-                                     'abcdefabcdeff', 'abcdeffabcdef', 'abcdeffabcdeff'],
-    '[^a]': [x for x in CATEGORIES['category_any'] if x != 'a'],
-    '[^asdf]': [x for x in CATEGORIES['category_any'] if x not in 'asdf'],
-    'asdf': ['asdf'],
-    '(as|df)': ['as', 'df'],
-    '[áíő]': [u'á', u'í', u'ő'],
-    '(a|b)(1|2)\\1\\2\\1\\2': ['a1a1a1', 'a2a2a2', 'b1b1b1', 'b2b2b2'],
-    '(?=x)': ['x'],
-    '\\da{2}': ['0aa', '1aa', '2aa', '3aa', '4aa', '5aa', '6aa', '7aa', '8aa', '9aa'],
-    '\\w': CATEGORIES[sre_parse.CATEGORY_WORD],
-    '\\W': CATEGORIES[sre_parse.CATEGORY_NOT_WORD]
+    "(a|b)": ["a", "b"],
+    "[ab][cd]": ["ac", "ad", "bc", "bd"],
+    "a|ab": ["a", "ab"],
+    "[0-2]": ["0", "1", "2"],
+    "(foo|bar)(20|)16": ["foo2016", "foo16", "bar2016", "bar16"],
+    "[12]{1,2}": ["1", "2", "11", "12", "21", "22"],
+    "((hai){2}|world)!": ["haihai!", "world!"],
+    "[ab]{1,3}": ["a", "b", "aa", "ab", "ba", "bb", "aaa", "aab", "aba", "abb", "baa", "bab", "bba", "bbb"],
+    r"\d": list(map(str, range(0, 10))),
+    "a[b]?(c){0,1}": ["a", "ac", "ab", "abc"],
+    "(a(b(c(d(e(f))))))": ["abcdef"],
+    "(a(b(c(d(e(f){1,2}))))){1,2}": [
+        "abcdef",
+        "abcdeff",
+        "abcdefabcdef",
+        "abcdefabcdeff",
+        "abcdeffabcdef",
+        "abcdeffabcdeff",
+    ],
+    "[^a]": [x for x in CATEGORIES["category_any"] if x != "a"],
+    "[^asdf]": [x for x in CATEGORIES["category_any"] if x not in "asdf"],
+    "asdf": ["asdf"],
+    "(as|df)": ["as", "df"],
+    "[áíő]": ["á", "í", "ő"],
+    "(a|b)(1|2)\\1\\2\\1\\2": ["a1a1a1", "a2a2a2", "b1b1b1", "b2b2b2"],
+    "(?=x)": ["x"],
+    "\\da{2}": ["0aa", "1aa", "2aa", "3aa", "4aa", "5aa", "6aa", "7aa", "8aa", "9aa"],
+    "\\w": CATEGORIES[sre_parse.CATEGORY_WORD],
+    "\\W": CATEGORIES[sre_parse.CATEGORY_NOT_WORD],
 }
 
 BIGS = [
-    '^a*$',
-    '^[a-zA-Z]+$',
-    '^(foo){3,}$',
-    '^([^/]+)(.*)$',
-    '^[^/]+(.*)$',
-    '^([^/]+).*$',
-    '^[^asdf]+$',
-    '^a{5,}?',
-    '^a[^bcd]*?e',
-    '^([^0-9]{2,}|(a|s|d|f|g)+|[a-z]+)+$',
-    '^([^ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz]|asdf)+$',
-    '^(1[0-2]|0[1-9])(:[0-5]\d){2} (A|P)M$',
-    '(.*)\\1'
+    "^a*$",
+    "^[a-zA-Z]+$",
+    "^(foo){3,}$",
+    "^([^/]+)(.*)$",
+    "^[^/]+(.*)$",
+    "^([^/]+).*$",
+    "^[^asdf]+$",
+    "^a{5,}?",
+    "^a[^bcd]*?e",
+    "^([^0-9]{2,}|(a|s|d|f|g)+|[a-z]+)+$",
+    "^([^ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz]|asdf)+$",
+    r"^(1[0-2]|0[1-9])(:[0-5]\d){2} (A|P)M$",
+    "(.*)\\1",
 ]
 
 
@@ -102,6 +108,53 @@ class TestExrex(unittest.TestCase):
                 r = list(generate(new_regex))
                 self.assertEqual(r, result)
 
+    def test_question_mark_range(self):
+        result = generate(r"https?://google\.(com|cn|com\.af|com\.hk)/.*", limit=1)
+        result = [*result]
+        self.assertEqual(
+            result,
+            [
+                "http://google.com/",
+                "http://google.cn/",
+                "http://google.com.af/",
+                "http://google.com.hk/",
+                "https://google.com/",
+                "https://google.cn/",
+                "https://google.com.af/",
+                "https://google.com.hk/",
+            ],
+        )
 
-if __name__ == '__main__':
+    def test_limited_range(self):
+        result = generate(r"https{0,1}://google\.(com|cn|com\.af|com\.hk)/.*", limit=1)
+        result = [*result]
+        self.assertEqual(
+            result,
+            [
+                "http://google.com/",
+                "http://google.cn/",
+                "http://google.com.af/",
+                "http://google.com.hk/",
+                "https://google.com/",
+                "https://google.cn/",
+                "https://google.com.af/",
+                "https://google.com.hk/",
+            ],
+        )
+
+    def test_group_refs(self):
+        result = generate(r"(a|gg|c)(cc|dd)\1", limit=1)
+        result = [*result]
+        self.assertEqual(result, ["acca", "adda", "ggccgg", "ggddgg", "cccc", "cddc"])
+
+    def test_generate_category_any(self):
+        result = generate(r".", limit=1)
+        result = [*result]
+        self.assertEqual(
+            result,
+            CATEGORIES["category_any"],
+        )
+
+
+if __name__ == "__main__":
     unittest.main()
